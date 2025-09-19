@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Private/sensitive files
+*.key
+*.pem
+config.json
+secrets.json
+
+# Python (if any scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node (if any tools)
+node_modules/
+
+# Exclude source PDFs/PNGs (keep only HTML reports)
+*.pdf
+*.png
+*.jpg
+*.jpeg
