@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bridge Family Therapy - Evaluation Reports Portal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
     <style>
         /* Base Typography - Consistent with BFT branding */
         * {
@@ -823,11 +824,34 @@
         function parseFilename(filename) {
             // Expected format: ClientID_YYYY_MM_DD_HHMM_BatteryType.html
             const parts = filename.replace('.html', '').split('_');
+            
+            // Handle different filename formats gracefully
+            if (parts.length < 4) {
+                // Fallback for unexpected formats
+                return {
+                    id: filename.replace('.html', ''),
+                    clientId: parts[0] || 'Unknown',
+                    date: new Date().toISOString().split('T')[0], // Use current date as fallback
+                    time: '00:00',
+                    battery: detectBatteryType(filename),
+                    batteryName: getBatteryName(filename),
+                    assessments: detectAssessments(filename),
+                    status: 'complete',
+                    filename: filename
+                };
+            }
+            
+            // Handle time parsing safely
+            let timeStr = '00:00';
+            if (parts[4] && parts[4].length >= 4) {
+                timeStr = `${parts[4].slice(0, 2)}:${parts[4].slice(2, 4)}`;
+            }
+            
             return {
                 id: parts.slice(0, 5).join('_'),
                 clientId: parts[0],
                 date: `${parts[1]}-${parts[2]}-${parts[3]}`,
-                time: `${parts[4].slice(0, 2)}:${parts[4].slice(2)}`,
+                time: timeStr,
                 battery: detectBatteryType(filename),
                 batteryName: getBatteryName(filename),
                 assessments: detectAssessments(filename),
