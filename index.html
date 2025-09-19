@@ -822,16 +822,16 @@
 
         // Parse filename to extract report metadata
         function parseFilename(filename) {
-            // Expected format: ClientID_YYYY_MM_DD_HHMM_BatteryType.html
-            const parts = filename.replace('.html', '').split('_');
+            const nameOnly = filename.replace('.html', '');
+            const parts = nameOnly.split('_');
             
-            // Handle different filename formats gracefully
-            if (parts.length < 4) {
+            // Handle different filename formats
+            if (parts.length < 3) {
                 // Fallback for unexpected formats
                 return {
-                    id: filename.replace('.html', ''),
-                    clientId: parts[0] || 'Unknown',
-                    date: new Date().toISOString().split('T')[0], // Use current date as fallback
+                    id: nameOnly,
+                    clientId: 'Unknown',
+                    date: new Date().toISOString().split('T')[0],
                     time: '00:00',
                     battery: detectBatteryType(filename),
                     batteryName: getBatteryName(filename),
@@ -841,17 +841,64 @@
                 };
             }
             
-            // Handle time parsing safely
-            let timeStr = '00:00';
-            if (parts[4] && parts[4].length >= 4) {
-                timeStr = `${parts[4].slice(0, 2)}:${parts[4].slice(2, 4)}`;
+            // Check if this is the new format: BatteryType_YYYYMMDD_HHMMSS.html
+            // Example: Neurodiversity_Screener_20250918_104646.html
+            if (parts.length >= 3 && parts[parts.length - 2].length === 8 && /^\d{8}$/.test(parts[parts.length - 2])) {
+                const dateStr = parts[parts.length - 2]; // 20250918
+                const timeStr = parts[parts.length - 1]; // 104646
+                
+                // Parse date YYYYMMDD
+                const year = dateStr.substring(0, 4);
+                const month = dateStr.substring(4, 6);
+                const day = dateStr.substring(6, 8);
+                
+                // Parse time HHMMSS
+                const hour = timeStr.substring(0, 2);
+                const minute = timeStr.substring(2, 4);
+                
+                // Extract battery name from the beginning parts
+                const batteryParts = parts.slice(0, -2);
+                const batteryName = batteryParts.join(' ');
+                
+                return {
+                    id: nameOnly,
+                    clientId: `${year}-${month}-${day}`, // Use date as identifier for current format
+                    date: `${year}-${month}-${day}`,
+                    time: `${hour}:${minute}`,
+                    battery: detectBatteryType(filename),
+                    batteryName: getBatteryName(filename),
+                    assessments: detectAssessments(filename),
+                    status: 'complete',
+                    filename: filename
+                };
             }
             
+            // Handle legacy format: ClientID_YYYY_MM_DD_HHMM_BatteryType.html
+            if (parts.length >= 5) {
+                let timeStr = '00:00';
+                if (parts[4] && parts[4].length >= 4) {
+                    timeStr = `${parts[4].slice(0, 2)}:${parts[4].slice(2, 4)}`;
+                }
+                
+                return {
+                    id: parts.slice(0, 5).join('_'),
+                    clientId: parts[0],
+                    date: `${parts[1]}-${parts[2]}-${parts[3]}`,
+                    time: timeStr,
+                    battery: detectBatteryType(filename),
+                    batteryName: getBatteryName(filename),
+                    assessments: detectAssessments(filename),
+                    status: 'complete',
+                    filename: filename
+                };
+            }
+            
+            // Final fallback
             return {
-                id: parts.slice(0, 5).join('_'),
-                clientId: parts[0],
-                date: `${parts[1]}-${parts[2]}-${parts[3]}`,
-                time: timeStr,
+                id: nameOnly,
+                clientId: parts[0] || 'Unknown',
+                date: new Date().toISOString().split('T')[0],
+                time: '00:00',
                 battery: detectBatteryType(filename),
                 batteryName: getBatteryName(filename),
                 assessments: detectAssessments(filename),
