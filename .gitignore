@@ -36,3 +36,6 @@ node_modules/
 *.png
 *.jpg
 *.jpeg
+
+# Allow BFT Logo
+!BFT-Logo.png
